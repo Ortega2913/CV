@@ -1,0 +1,8 @@
+audio.wav
+frames/
+frames2/
+ffmpeg_*.deb
+motion-graphics/node_modules/
+motion-graphics/dist/
+__pycache__/
+*.pyc
