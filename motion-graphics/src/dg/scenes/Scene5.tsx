@@ -1,89 +1,99 @@
 import React from 'react';
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate, Easing } from 'remotion';
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate } from 'remotion';
 import { Goliath, David, Army } from '../figures';
 import { Title } from '../Title';
+import { Stage, Layer, keys, EASE } from '../camera';
 import { SCENES } from '../data';
 
-// Scene 5 (38-45s): David victorious over the fallen giant, sunrise breaking
-// through, the army of Israel surging forward. Final title.
+// Scene 5 (38-45s): camera cranes back and tilts up to reveal the sunrise as
+// David stands victorious and the army of Israel surges forward.
 export const Scene5: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
 
-  const fadeIn = interpolate(frame, [0, fps * 0.6], [0, 1], { extrapolateRight: 'clamp' });
-  const opacity = fadeIn; // hold to the end (master fade handles tail)
-
+  const opacity = interpolate(frame, [0, fps * 0.6], [0, 1], { extrapolateRight: 'clamp', easing: EASE.out });
   const t = frame / fps;
-  // sunrise rising
-  const sun = interpolate(frame, [0, durationInFrames], [0, 1], { easing: Easing.bezier(0.3, 0, 0.4, 1) });
-  // army advancing forward
-  const advance = interpolate(frame, [fps * 0.5, durationInFrames], [0, 8], { extrapolateLeft: 'clamp', easing: Easing.bezier(0.4, 0, 0.6, 1) });
 
+  // Majestic camera: pull back + tilt up to the light.
+  const cam = {
+    rx: keys(frame, [{ f: 0, v: 7 }, { f: durationInFrames, v: -5, ease: EASE.soft }]),
+    ry: keys(frame, [{ f: 0, v: -8 }, { f: 50, v: 0, ease: EASE.out }, { f: durationInFrames, v: 3, ease: EASE.soft }]),
+    tz: keys(frame, [{ f: 0, v: 130 }, { f: durationInFrames, v: -210, ease: EASE.soft }]),
+  };
+
+  const sun = interpolate(frame, [0, durationInFrames], [0, 1], { easing: EASE.soft });
+  const advance = keys(frame, [{ f: fps * 0.5, v: 0 }, { f: durationInFrames, v: 8, ease: EASE.soft }]);
   const rays = [-34, -16, 2, 20, 38];
 
   return (
-    <AbsoluteFill style={{ opacity }}>
-      {/* sunrise glow at horizon */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: `radial-gradient(ellipse 60% 50% at 50% 66%, rgba(255,224,150,${0.35 + sun * 0.4}) 0%, rgba(255,180,90,${0.2 + sun * 0.2}) 25%, transparent 60%)`,
-        }}
-      />
-      {/* god-ray light beams from the horizon */}
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-        {rays.map((ang, i) => {
-          const shimmer = 0.18 + 0.12 * Math.sin(t * 1.1 + i);
-          return (
-            <div
-              key={i}
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: '66%',
-                width: 60,
-                height: '120%',
-                transformOrigin: 'top center',
-                transform: `translateX(-50%) rotate(${ang + 180}deg)`,
-                background: 'linear-gradient(180deg, rgba(255,228,160,0.9) 0%, rgba(255,210,130,0) 75%)',
-                opacity: shimmer * sun,
-                filter: 'blur(2px)',
-              }}
-            />
-          );
-        })}
-      </div>
+    <AbsoluteFill>
+      <Stage cam={cam} opacity={opacity}>
+        {/* sunrise + god-rays, far */}
+        <Layer depth={-420}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: `radial-gradient(ellipse 60% 50% at 50% 66%, rgba(255,224,150,${0.35 + sun * 0.4}) 0%, rgba(255,180,90,${0.2 + sun * 0.2}) 25%, transparent 60%)`,
+            }}
+          />
+          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+            {rays.map((ang, i) => {
+              const shimmer = 0.18 + 0.12 * Math.sin(t * 1.1 + i);
+              return (
+                <div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    left: '50%',
+                    top: '66%',
+                    width: 60,
+                    height: '120%',
+                    transformOrigin: 'top center',
+                    transform: `translateX(-50%) rotate(${ang + 180}deg)`,
+                    background: 'linear-gradient(180deg, rgba(255,228,160,0.9) 0%, rgba(255,210,130,0) 75%)',
+                    opacity: shimmer * sun,
+                    filter: 'blur(2px)',
+                  }}
+                />
+              );
+            })}
+          </div>
+        </Layer>
 
-      {/* fallen Goliath, right */}
-      <div style={{ position: 'absolute', left: '80%', bottom: '6%', transform: 'translateX(-50%) rotate(88deg)', transformOrigin: 'bottom center', zIndex: 100 }}>
-        <Goliath heightPx={500} rim="#6a2a22" flip />
-      </div>
+        {/* Israelite army surging forward */}
+        <Layer depth={-220}>
+          <div style={{ position: 'absolute', inset: 0, transform: `translateX(${advance}%)` }}>
+            <Army count={11} leftRange={[4, 34]} bottom={16} baseHeight={150} rim="#3a5575" seed={21} frame={frame} fps={fps} cheer />
+          </div>
+        </Layer>
 
-      {/* Israelite army surging forward, left */}
-      <div style={{ position: 'absolute', inset: 0, transform: `translateX(${advance}%)` }}>
-        <Army count={11} leftRange={[4, 34]} bottom={16} baseHeight={150} rim="#3a5575" seed={21} frame={frame} fps={fps} cheer />
-      </div>
+        {/* fallen Goliath */}
+        <Layer depth={40}>
+          <div style={{ position: 'absolute', left: '80%', bottom: '6%', transform: 'translateX(-50%) rotate(88deg)', transformOrigin: 'bottom center' }}>
+            <Goliath heightPx={500} rim="#6a2a22" flip />
+          </div>
+        </Layer>
 
-      {/* David, victorious, centre — staff raised */}
-      <div style={{ position: 'absolute', left: '48%', bottom: '12%', transform: 'translateX(-50%)', zIndex: 220 }}>
-        <David heightPx={250} rim="#ffe08a" armRaise={0.85} />
-      </div>
-
-      {/* halo behind David */}
-      <div
-        style={{
-          position: 'absolute',
-          left: '48%',
-          bottom: '22%',
-          transform: 'translate(-50%, 50%)',
-          width: 260,
-          height: 260,
-          borderRadius: '50%',
-          background: `radial-gradient(circle, rgba(255,235,170,${0.3 * sun}) 0%, transparent 65%)`,
-          zIndex: 210,
-        }}
-      />
+        {/* David victorious + halo */}
+        <Layer depth={150}>
+          <div
+            style={{
+              position: 'absolute',
+              left: '48%',
+              bottom: '22%',
+              transform: 'translate(-50%, 50%)',
+              width: 260,
+              height: 260,
+              borderRadius: '50%',
+              background: `radial-gradient(circle, rgba(255,235,170,${0.3 * sun}) 0%, transparent 65%)`,
+            }}
+          />
+          <div style={{ position: 'absolute', left: '48%', bottom: '12%', transform: 'translateX(-50%)' }}>
+            <David heightPx={250} rim="#ffe08a" armRaise={0.85} />
+          </div>
+        </Layer>
+      </Stage>
 
       <Title lines={SCENES[4].title} durationInFrames={durationInFrames} finale />
     </AbsoluteFill>
