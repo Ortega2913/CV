@@ -5,7 +5,10 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const outputFile = path.join(__dirname, '..', 'output_motion_graphics.mp4');
+// Usage: node render.mjs [compositionId] [outputFileName]
+const COMPOSITION_ID = process.argv[2] || 'GethsemaneMotionGraphics';
+const OUTPUT_NAME = process.argv[3] || 'output_motion_graphics.mp4';
+const outputFile = path.join(__dirname, '..', OUTPUT_NAME);
 
 console.log('Bundling Remotion project...');
 
@@ -21,7 +24,7 @@ const CHROME_PATH = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 
 const composition = await selectComposition({
   serveUrl: bundled,
-  id: 'GethsemaneMotionGraphics',
+  id: COMPOSITION_ID,
   browserExecutable: CHROME_PATH,
   chromeMode: 'chrome-for-testing',
 });
