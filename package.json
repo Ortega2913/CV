@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "remotion studio",
-    "render": "remotion render ParallaxCamera out/parallax.mp4",
+    "render": "remotion render src/index.tsx ParallaxCamera out/parallax.mp4 --browser-executable=/opt/pw-browsers/chromium-1194/chrome-linux/chrome --chrome-mode=chrome-for-testing",
     "build": "tsc --noEmit"
   },
   "repository": {
