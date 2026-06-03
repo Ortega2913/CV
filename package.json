@@ -1,0 +1,31 @@
+{
+  "name": "5-ways-quit-sinning-video",
+  "version": "1.0.0",
+  "description": "Cinematic motivational video - 5 Ways to Quit Sinning",
+  "scripts": {
+    "start": "remotion studio",
+    "render": "remotion render SinningVideo out/video.mp4 --codec=h264",
+    "render-4k": "remotion render SinningVideo out/video-4k.mp4 --codec=h264 --width=3840 --height=2160",
+    "build": "remotion render SinningVideo out/video.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.243",
+    "@remotion/three": "4.0.243",
+    "@remotion/google-fonts": "4.0.243",
+    "remotion": "4.0.243",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "three": "0.162.0",
+    "@react-three/fiber": "8.16.8",
+    "@react-three/drei": "9.105.4"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.1",
+    "@types/react-dom": "18.3.0",
+    "@types/three": "0.162.0",
+    "typescript": "5.4.5"
+  },
+  "remotion": {
+    "entrypoint": "src/index.ts"
+  }
+}
